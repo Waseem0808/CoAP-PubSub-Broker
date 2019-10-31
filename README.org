@@ -1,0 +1,55 @@
+* CoAP publish-subscribe broker
+
+Part of a [[http://www.diva-portal.org/smash/get/diva2:1232126/FULLTEXT01.pdf][Bachelor Thesis]] at KTH.
+For more details regarding the different methods, please refer to the [[https://tools.ietf.org/html/draft-ietf-core-coap-pubsub-02#section-4.3][CoAP publish-subscribe RFC Draft]].
+
+** Prerequisites
+
+Make sure clang is installed. If not, run (on Debian)
+
+sudo apt install clang
+
+** How to setup the broker and try it out locally
+
+cd yuarel/
+make
+
+cd ..
+make
+
+./broker 127.0.0.1 5683
+
+** Use a client to connect with the broker
+
+On [[http://coap.technology/impls.html][coap.technology]] there are several implementations one can use. One of the simplest is the JavaScript command line tools node-coap and coap-cli. Install them by running:
+
+npm install coap-cli -g
+sudo npm install coap-cli -g
+
+** Example messages to get started with the broker
+
+Having installed the JavaScript clients in the step above, let's start by running the *DISCOVERY* method to see what topics are currently on the broker:
+
+coap get "coap://127.0.0.1:5683/.well-known/core"
+
+There are no topics as of yet. Let's run the *CREATE* method to create one:
+
+echo "<stockholm>;ct=40" | coap post "coap://127.0.0.1:5683/ps"
+
+Then, we run *DISCOVERY* again:
+
+coap get "coap://127.0.0.1:5683/.well-known/core"
+
+The output is:
+
+(2.05)	</ps/stockholm>;ct=40
+
+We now have a topic called Stockholm, which is a parent node (the ct=40 indicates this). It means that it cannot store a value. Values are only stored in the leaf nodes. Please refer to the [[http://www.diva-portal.org/smash/get/diva2:1232126/FULLTEXT01.pdf][thesis]] section 3.2.1 for further motivation why this is so.
+
+Let's *CREATE* a leaf node to /stockholm/:
+
+echo "<temperature>;ct=0" | coap post "coap://127.0.0.1:5683/ps/stockholm"
+
+The output should be:
+
+(2.01)	/ps/stockholm/temperature
